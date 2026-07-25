@@ -3,16 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>To Do List</title>
+
+<title>My Todo</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
+
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:'Poppins',sans-serif;
+font-family:Poppins,sans-serif;
 }
 
 body{
@@ -26,14 +28,14 @@ padding:30px;
 
 .container{
 width:100%;
-max-width:700px;
+max-width:760px;
 background:rgba(255,255,255,.08);
-backdrop-filter:blur(18px);
-border:1px solid rgba(255,255,255,.15);
-border-radius:25px;
+backdrop-filter:blur(20px);
+border:1px solid rgba(255,255,255,.1);
+border-radius:24px;
 padding:30px;
-box-shadow:0 15px 40px rgba(0,0,0,.3);
 color:white;
+box-shadow:0 15px 50px rgba(0,0,0,.35);
 }
 
 h1{
@@ -41,7 +43,7 @@ font-size:32px;
 margin-bottom:20px;
 }
 
-.input-area{
+.input-box{
 display:flex;
 gap:10px;
 margin-bottom:20px;
@@ -51,11 +53,11 @@ input{
 flex:1;
 padding:15px;
 border:none;
+outline:none;
 border-radius:15px;
-background:rgba(255,255,255,.1);
+background:rgba(255,255,255,.08);
 color:white;
 font-size:15px;
-outline:none;
 }
 
 input::placeholder{
@@ -64,51 +66,47 @@ color:#d1d5db;
 
 button{
 border:none;
-padding:14px 18px;
-border-radius:15px;
 cursor:pointer;
+border-radius:15px;
+padding:14px 18px;
 font-weight:600;
 transition:.25s;
 }
 
-.add{
-background:#3b82f6;
-color:white;
+button:hover{
+transform:translateY(-2px);
 }
 
-.add:hover{
-transform:translateY(-2px);
+.add{
+background:#2563eb;
+color:white;
 }
 
 .search{
 margin-bottom:20px;
 }
 
-.progress-box{
-margin-bottom:20px;
-}
-
-.progress{
-height:12px;
-background:rgba(255,255,255,.1);
-border-radius:50px;
-overflow:hidden;
-}
-
-.progress span{
-display:block;
-height:100%;
-width:0%;
-background:linear-gradient(to right,#22c55e,#4ade80);
-transition:.3s;
-}
-
-.info{
+.progress-info{
 display:flex;
 justify-content:space-between;
 margin-bottom:8px;
 font-size:14px;
 color:#ddd;
+}
+
+.progress{
+height:10px;
+border-radius:50px;
+background:rgba(255,255,255,.1);
+overflow:hidden;
+margin-bottom:20px;
+}
+
+.bar{
+height:100%;
+width:0%;
+background:linear-gradient(90deg,#22c55e,#4ade80);
+transition:.3s;
 }
 
 ul{
@@ -117,13 +115,18 @@ list-style:none;
 
 li{
 display:flex;
-align-items:center;
 justify-content:space-between;
+align-items:center;
 background:rgba(255,255,255,.08);
 padding:15px;
-border-radius:15px;
 margin-bottom:12px;
-animation:show .3s;
+border-radius:16px;
+cursor:grab;
+transition:.2s;
+}
+
+li:hover{
+background:rgba(255,255,255,.12);
 }
 
 .left{
@@ -133,26 +136,22 @@ gap:12px;
 flex:1;
 }
 
-.check{
-width:22px;
-height:22px;
-cursor:pointer;
-}
-
-.text{
-word-break:break-word;
+.drag{
+font-size:22px;
+opacity:.5;
+cursor:grab;
+user-select:none;
 }
 
 .done{
 text-decoration:line-through;
-opacity:.5;
+opacity:.45;
 }
 
 .actions button{
 padding:8px 12px;
 margin-left:5px;
 border-radius:10px;
-font-size:13px;
 }
 
 .edit{
@@ -165,174 +164,240 @@ background:#ef4444;
 color:white;
 }
 
+.ghost{
+opacity:.35;
+background:#3b82f6!important;
+}
+
 .empty{
 text-align:center;
-opacity:.5;
-padding:25px;
+padding:35px;
+opacity:.6;
 }
 
-@keyframes show{
-from{
-opacity:0;
-transform:translateY(10px);
-}
-to{
-opacity:1;
-transform:translateY(0);
-}
-}
 </style>
-</head>
 
+</head>
 <body>
 
 <div class="container">
 
-<h1>📝 My Tasks</h1>
+<h1>📝 My Todo</h1>
 
-<div class="input-area">
-<input id="taskInput" placeholder="Mau ngerjain apa hari ini...">
-<button class="add" onclick="addTask()">Tambah</button>
+<div class="input-box">
+
+<input id="taskInput" placeholder="Tambah tugas...">
+
+<button class="add" onclick="addTask()">
+Tambah
+</button>
+
 </div>
 
 <input id="search" class="search" placeholder="Cari tugas..." onkeyup="render()">
 
-<div class="progress-box">
-<div class="info">
+<div class="progress-info">
+
 <span id="count">0 / 0 selesai</span>
+
 <span id="percent">0%</span>
+
 </div>
 
 <div class="progress">
-<span id="bar"></span>
-</div>
+<div class="bar" id="bar"></div>
 </div>
 
 <ul id="list"></ul>
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+
 <script>
 
 let tasks=JSON.parse(localStorage.getItem("todo"))||[];
 
 function save(){
+
 localStorage.setItem("todo",JSON.stringify(tasks));
+
 render();
+
 }
 
 function addTask(){
 
-let input=document.getElementById("taskInput");
+const input=document.getElementById("taskInput");
 
-if(input.value.trim()=="") return;
+if(input.value.trim()=="")return;
 
 tasks.unshift({
+
 text:input.value,
+
 done:false
+
 });
 
 input.value="";
+
 save();
-
-}
-
-function render(){
-
-let keyword=document.getElementById("search").value.toLowerCase();
-
-let list=document.getElementById("list");
-
-list.innerHTML="";
-
-let filtered=tasks.filter(x=>x.text.toLowerCase().includes(keyword));
-
-if(filtered.length==0){
-list.innerHTML="<div class='empty'>Belum ada tugas 😴</div>";
-}
-
-filtered.forEach(task=>{
-
-let realIndex=tasks.indexOf(task);
-
-list.innerHTML+=`
-<li>
-
-<div class="left">
-
-<input class="check"
-type="checkbox"
-${task.done?"checked":""}
-onchange="toggle(${realIndex})">
-
-<div class="text ${task.done?"done":""}">
-${task.text}
-</div>
-
-</div>
-
-<div class="actions">
-
-<button class="edit"
-onclick="editTask(${realIndex})">
-Edit
-</button>
-
-<button class="delete"
-onclick="removeTask(${realIndex})">
-Hapus
-</button>
-
-</div>
-
-</li>
-`;
-
-});
-
-updateProgress();
 
 }
 
 function toggle(i){
+
 tasks[i].done=!tasks[i].done;
+
 save();
+
 }
 
 function removeTask(i){
+
 tasks.splice(i,1);
+
 save();
+
 }
 
 function editTask(i){
 
-let baru=prompt("Edit tugas",tasks[i].text);
+const baru=prompt("Edit tugas",tasks[i].text);
 
 if(baru && baru.trim()!=""){
+
 tasks[i].text=baru;
+
 save();
+
 }
 
 }
 
 function updateProgress(){
 
-let done=tasks.filter(x=>x.done).length;
+const done=tasks.filter(x=>x.done).length;
 
-let total=tasks.length;
+const total=tasks.length;
 
-let percent=total?Math.round(done/total*100):0;
+const persen=total?Math.round(done/total*100):0;
 
 document.getElementById("count").innerHTML=`${done} / ${total} selesai`;
 
-document.getElementById("percent").innerHTML=percent+"%";
+document.getElementById("percent").innerHTML=persen+"%";
 
-document.getElementById("bar").style.width=percent+"%";
+document.getElementById("bar").style.width=persen+"%";
 
 }
 
-document.getElementById("taskInput").addEventListener("keypress",e=>{
-if(e.key==="Enter") addTask();
+function render(){
+
+const keyword=document.getElementById("search").value.toLowerCase();
+
+const list=document.getElementById("list");
+
+list.innerHTML="";
+
+const filtered=tasks.filter(t=>t.text.toLowerCase().includes(keyword));
+
+if(filtered.length==0){
+
+list.innerHTML="<div class='empty'>Belum ada tugas.</div>";
+
+}
+
+filtered.forEach(task=>{
+
+const realIndex=tasks.indexOf(task);
+
+list.innerHTML+=`
+
+<li>
+
+<div class="left">
+
+<span class="drag">☰</span>
+
+<input type="checkbox"
+
+${task.done?"checked":""}
+
+onchange="toggle(${realIndex})">
+
+<span class="${task.done?"done":""}">
+
+${task.text}
+
+</span>
+
+</div>
+
+<div class="actions">
+
+<button class="edit"
+
+onclick="editTask(${realIndex})">
+
+Edit
+
+</button>
+
+<button class="delete"
+
+onclick="removeTask(${realIndex})">
+
+Hapus
+
+</button>
+
+</div>
+
+</li>
+
+`;
+
+});
+
+updateProgress();
+
+new Sortable(document.getElementById("list"),{
+
+animation:180,
+
+ghostClass:"ghost",
+
+handle:".drag",
+
+onEnd:function(evt){
+
+if(document.getElementById("search").value!=""){
+
+alert("Kosongkan pencarian dulu sebelum mengubah urutan.");
+
+render();
+
+return;
+
+}
+
+const item=tasks.splice(evt.oldIndex,1)[0];
+
+tasks.splice(evt.newIndex,0,item);
+
+localStorage.setItem("todo",JSON.stringify(tasks));
+
+}
+
+});
+
+}
+
+document.getElementById("taskInput").addEventListener("keypress",function(e){
+
+if(e.key==="Enter")addTask();
+
 });
 
 render();
